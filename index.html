@@ -3,128 +3,505 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>홀가분(Holgabun) - 옷장 연동</title>
+    <title>홀가분 - 실전형 부채 탈출 & 스마트 자산 옷장</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        /* 모바일 앱 화면 비율 제어 */
-        body { background-color: #e5e7eb; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; font-family: 'Pretendard', sans-serif; }
-        .app-container { width: 100%; max-width: 390px; height: 844px; background: #ffffff; position: relative; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-radius: 20px; }
-        .screen { display: none; height: 100%; padding: 24px; flex-direction: column; }
-        .screen.active { display: flex; }
-        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #111827; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto; }
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
+        body { font-family: 'Noto Sans KR', sans-serif; background-color: #ffffff; color: #212124; }
+        
+        .slide-in-right { animation: slideInRight 0.25s ease-out; }
+        .slide-in-bottom { animation: slideInBottom 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        .fade-in { animation: fadeIn 0.2s ease-out; }
+        .golden-glow { animation: goldenGlow 2s infinite; }
+        .spin-slow { animation: spin 2s linear infinite; }
+        
+        @keyframes slideInRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
+        @keyframes slideInBottom { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes goldenGlow { 0% { box-shadow: 0 0 5px #fbbf24; } 50% { box-shadow: 0 0 20px #f59e0b; } 100% { box-shadow: 0 0 5px #fbbf24; } }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .text-point { color: #ff6f0f; }
+        .bg-point { background-color: #ff6f0f; }
+        .bg-gold { background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%); }
+
+        .badge-daangn { background-color: #fff7f2; color: #ff6f0f; border: 1px solid #ffefe5; }
+        .badge-bunjang { background-color: #fce8e8; color: #d32f2f; border: 1px solid #fadcdc; }
+        .badge-joongna { background-color: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
     </style>
 </head>
 <body>
+    <div id="root"></div>
 
-<div class="app-container">
-    
-    <div id="screen-intro" class="screen active justify-center">
-        <h1 class="text-3xl font-bold text-gray-900 mb-4">내 옷장,<br>이제 자산이 됩니다.</h1>
-        <p class="text-gray-500 mb-8">일일이 사진 찍을 필요 없이,<br>자주 쓰는 쇼핑몰을 연결해 내 옷장을 완성하세요.</p>
-        <img src="https://placehold.co/300x200/e2e8f0/64748b?text=Wardrobe+Sync" alt="의류 연동 일러스트" class="rounded-lg mb-8 mx-auto">
-        <button onclick="showScreen('screen-connect')" class="w-full bg-gray-900 text-white font-bold py-4 rounded-xl mt-auto hover:bg-gray-800 transition">쇼핑몰 연동 시작하기</button>
-    </div>
+    <script type="text/babel">
+        const { useState, useEffect, useMemo, useRef } = React;
 
-    <div id="screen-connect" class="screen">
-        <button onclick="showScreen('screen-intro')" class="text-gray-400 mb-6 text-left">← 뒤로가기</button>
-        <h2 class="text-2xl font-bold text-gray-900 mb-2">어디서 주로<br>쇼핑하시나요?</h2>
-        <p class="text-sm text-gray-500 mb-6">구매 내역을 안전하게 불러옵니다.</p>
-        
-        <div class="space-y-3 flex-1">
-            <label class="flex items-center justify-between p-4 border rounded-xl cursor-pointer hover:border-gray-900">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center font-bold text-xs">KREAM</div>
-                    <span class="font-medium text-gray-800">크림 (KREAM)</span>
-                </div>
-                <input type="checkbox" class="w-5 h-5 accent-gray-900" checked>
-            </label>
-            <label class="flex items-center justify-between p-4 border rounded-xl cursor-pointer hover:border-gray-900">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-xs">MUSINSA</div>
-                    <span class="font-medium text-gray-800">무신사</span>
-                </div>
-                <input type="checkbox" class="w-5 h-5 accent-gray-900" checked>
-            </label>
-            <label class="flex items-center justify-between p-4 border rounded-xl cursor-pointer hover:border-gray-900">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-gray-200 text-gray-800 rounded-full flex items-center justify-center font-bold text-xs">BALAAN</div>
-                    <span class="font-medium text-gray-800">발란</span>
-                </div>
-                <input type="checkbox" class="w-5 h-5 accent-gray-900">
-            </label>
-        </div>
+        const Icon = ({ name, size = 20, className = "" }) => {
+            return <i data-lucide={name} className={className} style={{ width: size, height: size }}></i>;
+        };
 
-        <button onclick="startSync()" class="w-full bg-gray-900 text-white font-bold py-4 rounded-xl mt-4">선택한 쇼핑몰 연동하기</button>
-    </div>
+        const formatKRW = (n) => new Intl.NumberFormat('ko-KR').format(n) + '원';
 
-    <div id="screen-loading" class="screen justify-center text-center">
-        <div class="loader mb-6"></div>
-        <h2 class="text-xl font-bold text-gray-900 mb-2">패션 자산을 불러오는 중...</h2>
-        <p class="text-sm text-gray-500">최근 3년간의 구매 내역과<br>현재 중고 시세를 매칭하고 있습니다.</p>
-    </div>
+        // 1. 대형 시세 그래프 (생략 없이 유지)
+        const LargePriceChart = ({ currentPrice, category }) => {
+            const data = useMemo(() => {
+                const points = [];
+                const dropRate = category === 'electronics' ? 1.6 : 1.3;
+                const startPrice = currentPrice * dropRate; 
+                for (let i = 0; i <= 24; i++) {
+                    const progress = i / 24;
+                    const decay = Math.pow(1 - progress, category === 'electronics' ? 1.1 : 1.5);
+                    points.push(Math.round(currentPrice + (startPrice - currentPrice) * decay));
+                }
+                points[24] = currentPrice;
+                return points;
+            }, [currentPrice, category]);
 
-    <div id="screen-dashboard" class="screen bg-gray-50">
-        <div class="flex justify-between items-center mb-6">
-            <h2 class="text-xl font-bold text-gray-900">내 옷장 자산</h2>
-            <div class="w-8 h-8 bg-gray-300 rounded-full"></div>
-        </div>
-        
-        <div class="bg-gray-900 text-white p-5 rounded-2xl mb-6 shadow-lg">
-            <p class="text-sm text-gray-300 mb-1">총 예상 자산 가치 (12벌)</p>
-            <h3 class="text-3xl font-bold mb-3">₩ 3,450,000</h3>
-            <div class="flex justify-between text-xs text-gray-400 bg-gray-800 p-3 rounded-lg">
-                <span>구매가 대비 수익률</span>
-                <span class="text-red-400 font-bold">+ 12.5% ↑</span>
-            </div>
-        </div>
+            const max = Math.max(...data); const min = Math.min(...data);
+            const width = 340; const height = 150;
+            const pointsStr = data.map((p, i) => `${(i / 24) * width},${height - ((p - min) / (max - min)) * (height - 30) - 10}`).join(' L ');
 
-        <h3 class="font-bold text-gray-800 mb-3">최근 연동된 아이템</h3>
-        
-        <div class="space-y-4 overflow-y-auto pb-4">
-            <div class="bg-white p-4 rounded-xl border flex items-center gap-4">
-                <div class="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center text-xs">이미지</div>
-                <div class="flex-1">
-                    <p class="text-xs text-gray-500">KREAM 연동</p>
-                    <h4 class="font-bold text-sm text-gray-900 line-clamp-1">메종 마르지엘라 레플리카 스니커즈</h4>
-                    <div class="flex justify-between items-end mt-1">
-                        <span class="text-xs text-gray-400">구매가 54만</span>
-                        <span class="font-bold text-blue-600">현재 시세 48만</span>
+            return (
+                <div className="w-full bg-white rounded-2xl p-5 border border-gray-100 shadow-sm mt-4">
+                    <div className="flex justify-between items-end mb-4">
+                        <div><h4 className="font-bold text-gray-800 text-sm tracking-tight">2년 시세 데이터 분석</h4><p className="text-[10px] text-gray-400 mt-0.5">전국 딜러 매입가/직거래가 통합</p></div>
+                        <span className="text-xs font-bold text-point bg-orange-50 px-2 py-1 rounded-full">▼ {(100 - (currentPrice/data[0])*100).toFixed(1)}%</span>
+                    </div>
+                    <div className="relative h-[150px] w-full">
+                        <svg width="100%" height="100%" viewBox={`0 0 ${width} ${height}`} className="overflow-visible">
+                            <path d={`M 0,${height} L ${pointsStr} L ${width},${height} Z`} fill="rgba(255, 111, 15, 0.05)" />
+                            <path d={`M ${pointsStr}`} fill="none" stroke="#ff6f0f" strokeWidth="2.5" strokeLinecap="round" />
+                            <circle cx={width} cy={height - ((data[24] - min) / (max - min)) * (height - 30) - 10} r="4" fill="white" stroke="#ff6f0f" strokeWidth="2" />
+                        </svg>
+                        <div className="flex justify-between text-[10px] text-gray-400 mt-3 border-t border-gray-50 pt-2"><span>24개월 전</span><span>12개월 전</span><span>현재</span></div>
                     </div>
                 </div>
-            </div>
-            <div class="bg-white p-4 rounded-xl border flex items-center gap-4">
-                <div class="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center text-xs">이미지</div>
-                <div class="flex-1">
-                    <p class="text-xs text-gray-500">무신사 연동</p>
-                    <h4 class="font-bold text-sm text-gray-900 line-clamp-1">우영미 백로고 블랙 티셔츠</h4>
-                    <div class="flex justify-between items-end mt-1">
-                        <span class="text-xs text-gray-400">구매가 22만</span>
-                        <span class="font-bold text-red-500">현재 시세 25만 ↑</span>
+            );
+        };
+
+        // 2. 자산 등록 모달 (생략 없이 유지)
+        const AddAssetModal = ({ onClose, onAdd }) => {
+            const [step, setStep] = useState(1);
+            const [category, setCategory] = useState('luxury');
+            const [name, setName] = useState('');
+            const [releaseYear, setReleaseYear] = useState('');
+            const [serial, setSerial] = useState('');
+            const [images, setImages] = useState([]);
+            const [estimatedPrice, setEstimatedPrice] = useState(null);
+            const [finalPrice, setFinalPrice] = useState('');
+            const [platforms, setPlatforms] = useState({ daangn: true, bunjang: false, joongna: false });
+            const [verifyStatus, setVerifyStatus] = useState('idle');
+
+            const fileInputRef = useRef(null);
+
+            const handleStartVerification = () => {
+                setVerifyStatus('checking');
+                setTimeout(() => {
+                    const base = category === 'luxury' ? 8500000 : 1200000;
+                    const age = 2025 - (Number(releaseYear) || 2023);
+                    const decay = category === 'luxury' ? 0.92 : 0.78;
+                    const price = Math.floor(base * Math.pow(decay, age));
+                    setEstimatedPrice(price);
+                    setFinalPrice(price);
+                    setVerifyStatus('done');
+                    setTimeout(() => setStep(3), 800);
+                }, 2000);
+            };
+
+            const togglePlatform = (p) => setPlatforms(prev => ({...prev, [p]: !prev[p]}));
+
+            return (
+                <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
+                    <div className="bg-white w-full max-w-md rounded-t-[2.5rem] p-6 slide-in-bottom h-[92vh] flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
+                        <div className="flex justify-between items-center mb-6">
+                            <button onClick={onClose} className="text-gray-400 p-2 hover:bg-gray-100 rounded-full transition"><Icon name="x" /></button>
+                            <h3 className="font-bold text-lg">자산 직접 등록</h3>
+                            <div className="w-10"></div>
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto no-scrollbar space-y-8 pb-10">
+                            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+                                <button onClick={() => fileInputRef.current.click()} className="w-20 h-20 border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center text-gray-300 shrink-0 hover:border-point hover:text-point transition">
+                                    <Icon name="camera" size={24} />
+                                    <span className="text-[10px] font-bold mt-1">{images.length}/10</span>
+                                </button>
+                                <input type="file" multiple accept="image/*" className="hidden" ref={fileInputRef} onChange={(e) => setImages([...images, ...Array.from(e.target.files).map(f => URL.createObjectURL(f))])} />
+                                {images.map((img, i) => (<div key={i} className="w-20 h-20 rounded-2xl overflow-hidden shrink-0 border border-gray-100 relative shadow-sm"><img src={img} className="w-full h-full object-cover" /></div>))}
+                            </div>
+
+                            {step === 1 && (
+                                <div className="space-y-6 fade-in">
+                                    <div className="flex bg-gray-100 p-1.5 rounded-2xl">
+                                        <button onClick={() => setCategory('luxury')} className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition ${category === 'luxury' ? 'bg-white text-gray-900 shadow-md' : 'text-gray-400'}`}>명품 자산</button>
+                                        <button onClick={() => setCategory('electronics')} className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition ${category === 'electronics' ? 'bg-white text-gray-900 shadow-md' : 'text-gray-400'}`}>전자제품 자산</button>
+                                    </div>
+                                    <div className="space-y-4">
+                                        <input value={name} onChange={e=>setName(e.target.value)} placeholder="상품명 (브랜드 및 모델명)" className="w-full text-lg border-b border-gray-100 py-3 outline-none font-bold" />
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <input type="number" value={releaseYear} onChange={e=>setReleaseYear(e.target.value)} placeholder="출시년도" className="w-full border-b border-gray-100 py-3 outline-none text-sm" />
+                                            <input value={serial} onChange={e=>setSerial(e.target.value)} placeholder="시리얼/모델번호" className="w-full border-b border-gray-100 py-3 outline-none text-sm" />
+                                        </div>
+                                    </div>
+                                    <button onClick={() => setStep(2)} disabled={!name || !releaseYear} className="w-full py-4 bg-slate-900 text-white rounded-[1.5rem] font-bold mt-4 disabled:opacity-30">다음 단계 (데이터 검증)</button>
+                                </div>
+                            )}
+
+                            {step === 2 && (
+                                <div className="flex-1 flex flex-col items-center justify-center text-center space-y-6 fade-in py-10 px-4">
+                                    <div className={`relative w-24 h-24 rounded-[2rem] flex items-center justify-center transition-all ${verifyStatus === 'checking' ? 'bg-orange-50 text-point animate-pulse border-2 border-point shadow-[0_0_15px_rgba(255,111,15,0.2)]' : 'bg-slate-50 text-slate-300'}`}>
+                                        <Icon name={verifyStatus === 'done' ? "check-circle" : "shield-check"} size={48} />
+                                    </div>
+                                    <div>
+                                        <h4 className="text-xl font-black tracking-tight">{verifyStatus === 'checking' ? '데이터 정밀 분석 중' : '2단계 검증 엔진'}</h4>
+                                        <p className="text-sm text-gray-400 mt-2 leading-relaxed">시리얼 논리 체크와<br/>AI 미세 패턴 분석을 병행합니다.</p>
+                                    </div>
+                                    {verifyStatus === 'idle' && <button onClick={handleStartVerification} className="px-10 py-3.5 bg-slate-900 text-white rounded-2xl font-bold shadow-xl">검증 시작</button>}
+                                </div>
+                            )}
+
+                            {step === 3 && (
+                                <div className="space-y-8 fade-in">
+                                    <div className="bg-emerald-50 border border-emerald-100 p-5 rounded-3xl text-center">
+                                        <div className="flex justify-center mb-2 text-emerald-500"><Icon name="check-circle" size={32} /></div>
+                                        <h4 className="font-bold text-emerald-900">정품 및 시세 인증 완료</h4>
+                                    </div>
+                                    <div className="space-y-6">
+                                        <div>
+                                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">AI Estimated Price</label>
+                                            <div className="mt-2 p-4 bg-slate-50 rounded-2xl border border-slate-100 flex justify-between items-center">
+                                                <span className="text-sm font-bold text-slate-500">평균 매입 시세</span>
+                                                <span className="text-xl font-black text-slate-900">{formatKRW(estimatedPrice)}</span>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Final Exit Price</label>
+                                            <input type="number" value={finalPrice} onChange={e=>setFinalPrice(e.target.value)} className="w-full text-2xl font-black border-b-2 border-gray-100 py-3 outline-none focus:border-point transition bg-transparent" />
+                                        </div>
+                                    </div>
+                                    <button onClick={() => {
+                                        onAdd({ id: Date.now(), name, price: Number(finalPrice), releaseYear, category, thumbnail: images[0], platforms: Object.keys(platforms).filter(k=>platforms[k]), isSold: false });
+                                        onClose();
+                                    }} className="w-full py-4 bg-slate-900 text-white rounded-[2rem] font-black text-lg shadow-2xl active:scale-95 transition">홀가분 자산으로 등록하기</button>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
-        
-        <button class="w-full bg-gray-900 text-white font-bold py-4 rounded-xl mt-auto shadow-lg">안 입는 옷 홀가분하게 판매하기</button>
-    </div>
+            );
+        };
 
-</div>
+        // 3. 자산 상세 뷰 (생략 없이 유지)
+        const AssetDetailView = ({ item, onBack, onToggleSold, debtTotal }) => {
+            const bids = useMemo(() => [
+                { id: 1, dealer: '프리미엄 구구스', price: item.price + 200000, time: '3분 전' },
+                { id: 2, dealer: '민트급 팩토리', price: item.price + 50000, time: '12분 전' },
+            ], [item.price]);
 
-<script>
-    function showScreen(screenId) {
-        document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
-        document.getElementById(screenId).classList.add('active');
-    }
+            const highestBid = bids[0].price;
 
-    function startSync() {
-        showScreen('screen-loading');
-        // 실제로는 API 호출이 들어가는 부분 (가짜 딜레이 2.5초)
-        setTimeout(() => {
-            showScreen('screen-dashboard');
-        }, 2500);
-    }
-</script>
+            return (
+                <div className="absolute inset-0 bg-white z-50 flex flex-col slide-in-right overflow-hidden">
+                    <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white z-10">
+                        <div className="flex items-center gap-3"><button onClick={onBack} className="p-2 hover:bg-gray-100 rounded-full transition"><Icon name="chevron-left" /></button><h3 className="font-bold text-lg">자산 관리 리포트</h3></div>
+                    </div>
+                    
+                    <div className="flex-1 overflow-y-auto pb-24 no-scrollbar bg-slate-50/30">
+                        <div className="w-full h-80 bg-gray-100 flex items-center justify-center relative border-b border-gray-100 shadow-inner">
+                            {item.thumbnail ? <img src={item.thumbnail} className="w-full h-full object-cover" /> : <Icon name={item.category==='luxury'||item.category==='fashion' ? 'shirt' : 'smartphone'} size={80} className="text-gray-300" />}
+                            {item.isSold && <div className="absolute inset-0 bg-black/50 flex items-center justify-center font-black text-white uppercase tracking-[0.3em] text-2xl backdrop-blur-sm">Exit Success</div>}
+                        </div>
 
+                        <div className="p-5">
+                            <div className="flex justify-between items-start mb-2">
+                                <h2 className="text-2xl font-black text-gray-900 tracking-tight leading-tight">{item.name}</h2>
+                            </div>
+
+                            <div className="bg-slate-900 text-white p-6 rounded-[2.5rem] shadow-2xl mb-8 relative overflow-hidden mt-6">
+                                <div className="absolute top-0 right-0 p-6 opacity-10"><Icon name="zap" size={80} /></div>
+                                <p className="text-[10px] font-black text-orange-400 uppercase tracking-widest mb-1">Exit Strategy Analysis</p>
+                                <h3 className="text-xl font-bold">부채 탕감 기회!</h3>
+                                <p className="text-xs opacity-70 mt-2 leading-relaxed">이 자산을 매각하면 <strong>{formatKRW(highestBid)}</strong>의<br/>현금을 즉시 확보할 수 있습니다.</p>
+                                <div className="mt-6 pt-6 border-t border-white/10 flex justify-between items-end">
+                                    <div><p className="text-[9px] opacity-40 uppercase font-bold mb-1">Current Highest Bid</p><p className="text-2xl font-black text-white">{formatKRW(highestBid)}</p></div>
+                                </div>
+                            </div>
+
+                            <LargePriceChart currentPrice={item.price} category={item.category} />
+                        </div>
+                    </div>
+                    <div className="p-5 border-t border-gray-100 bg-white sticky bottom-0 z-20 shadow-[0_-5px_15px_rgba(0,0,0,0.02)]">
+                        <button onClick={() => { onToggleSold(item.id); onBack(); }} className="w-full bg-point text-white py-5 rounded-[2rem] font-black text-lg shadow-xl shadow-orange-100 active:scale-95 transition hover:bg-orange-600 uppercase tracking-widest">이 자산 처분하기 (EXIT)</button>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- Main App ---
+        const App = () => {
+            const [view, setView] = useState('home');
+            const [showAdd, setShowAdd] = useState(false);
+            const [selectedAsset, setSelectedAsset] = useState(null);
+
+            // 옷장 연동 상태
+            const [wardrobeSyncStep, setWardrobeSyncStep] = useState('intro'); // intro, loading, dashboard
+            const [wardrobeItems, setWardrobeItems] = useState([]);
+
+            const [debts] = useState([
+                { id: 1, name: 'S카드 리볼빙', amount: 3500000, rate: 18.5, type: 'revolving' }, 
+                { id: 2, name: 'K은행 신용대출', amount: 5500000, rate: 5.5, type: 'loan' }
+            ]);
+            
+            const [items, setItems] = useState([
+                { id: 201, name: '샤넬 보이백 미디움', price: 9200000, releaseYear: 2021, category: 'luxury', thumbnail: null, platforms: ['daangn', 'bunjang'], isSold: false }
+            ]);
+            
+            const totalDebt = debts.reduce((a,c) => a+c.amount, 0);
+            const sellableTotal = items.filter(i => !i.isSold).reduce((a,c) => a+c.price, 0);
+            const netWorth = (sellableTotal + 1200000) - totalDebt;
+
+            const goldenExitAsset = useMemo(() => items.find(i => !i.isSold && i.price >= totalDebt), [items, totalDebt]);
+
+            useEffect(() => { if(window.lucide) window.lucide.createIcons(); }, [view, selectedAsset, showAdd, items, wardrobeSyncStep, wardrobeItems]);
+
+            const format = (n) => new Intl.NumberFormat('ko-KR').format(n);
+            const toggleSold = (id) => setItems(prev => prev.map(i => i.id === id ? { ...i, isSold: !i.isSold } : i));
+
+            // 옷장 연동 시뮬레이션
+            const startWardrobeSync = () => {
+                setWardrobeSyncStep('loading');
+                setTimeout(() => {
+                    setWardrobeItems([
+                        { id: 301, name: '메종 마르지엘라 레플리카 스니커즈', originalPrice: 540000, currentPrice: 480000, source: '크림(KREAM)', category: 'fashion' },
+                        { id: 302, name: '우영미 백로고 블랙 티셔츠', originalPrice: 220000, currentPrice: 250000, source: '무신사', category: 'fashion' },
+                        { id: 303, name: '스톤아일랜드 크링클랩스 패딩', originalPrice: 1200000, currentPrice: 850000, source: '발란', category: 'fashion' }
+                    ]);
+                    setWardrobeSyncStep('dashboard');
+                }, 2500);
+            };
+
+            // 옷장 아이템을 자산(처분 허브)으로 이동
+            const moveToAsset = (wItem) => {
+                setItems([{
+                    id: Date.now(),
+                    name: wItem.name,
+                    price: wItem.currentPrice,
+                    releaseYear: 2024,
+                    category: wItem.category,
+                    thumbnail: null,
+                    platforms: ['daangn'],
+                    isSold: false
+                }, ...items]);
+                
+                // 옷장에서는 자산으로 이동됨을 표시 (여기선 간단히 삭제 처리)
+                setWardrobeItems(prev => prev.filter(i => i.id !== wItem.id));
+                alert(`[${wItem.name}]이(가) 자산 처분 허브로 이동되었습니다!`);
+            };
+
+            return (
+                <div className="max-w-md mx-auto min-h-screen bg-white flex flex-col relative shadow-2xl overflow-hidden text-slate-900 border-x border-gray-100">
+                    <header className="px-6 py-4 flex justify-between items-center sticky top-0 bg-white/95 backdrop-blur-md z-30 border-b border-gray-50 h-16">
+                        <h1 className="text-2xl font-black tracking-tighter text-slate-900">홀가분</h1>
+                        <div className="flex gap-4">
+                            <button className="p-1 hover:bg-gray-100 rounded-lg transition text-slate-400"><Icon name="search" /></button>
+                            <div className="relative"><button className="p-1 hover:bg-gray-100 rounded-lg transition text-slate-400"><Icon name="bell" /></button><span className="absolute top-1 right-1 w-2.5 h-2.5 bg-orange-500 rounded-full border-2 border-white"></span></div>
+                        </div>
+                    </header>
+
+                    <main className="flex-1 pb-24 overflow-y-auto no-scrollbar bg-slate-50/20">
+                        
+                        {/* 탭 1: 기존 홈 화면 */}
+                        {view === 'home' && (
+                            <div className="fade-in p-5 space-y-8">
+                                {goldenExitAsset && (
+                                    <div onClick={() => setSelectedAsset(goldenExitAsset)} className="bg-gold p-6 rounded-[2.5rem] text-white shadow-2xl golden-glow relative overflow-hidden cursor-pointer active:scale-95 transition">
+                                        <div className="absolute top-0 right-0 p-4 opacity-20"><Icon name="sparkles" size={100} /></div>
+                                        <div className="relative z-10">
+                                            <span className="bg-white/30 text-[9px] font-black px-2.5 py-1 rounded-full backdrop-blur-md tracking-widest uppercase">Golden Exit Signal</span>
+                                            <h3 className="text-2xl font-black mt-3 leading-tight tracking-tight">지금 "{goldenExitAsset.name}"을 팔면<br/>모든 빚이 사라집니다!</h3>
+                                        </div>
+                                    </div>
+                                )}
+
+                                <section>
+                                    <div className="flex justify-between items-end mb-4">
+                                        <div><p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Net Worth Summary</p><h2 className="text-3xl font-black mt-1 tracking-tighter">{format(netWorth)}원</h2></div>
+                                        <Icon name="activity" className="text-emerald-500 mb-1" />
+                                    </div>
+                                    <div className="mt-4 flex h-3 w-full bg-gray-100 rounded-full overflow-hidden shadow-inner">
+                                        <div className="bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.3)]" style={{width: '35%'}}></div>
+                                        <div className="bg-red-400" style={{width: '65%'}}></div>
+                                    </div>
+                                    <div className="flex justify-between text-[11px] text-gray-400 mt-2 font-bold uppercase tracking-tighter"><span>Asset {format(sellableTotal + 1200000)}</span><span>Debt {format(totalDebt)}</span></div>
+                                </section>
+
+                                <section>
+                                    <h3 className="font-black text-xl mb-4 tracking-tight">내 자산 그리드</h3>
+                                    <div className="grid grid-cols-2 gap-5">
+                                        {items.map(item => (
+                                            <div key={item.id} onClick={() => setSelectedAsset(item)} className={`border border-slate-100 rounded-[2.5rem] p-5 shadow-sm relative transition active:scale-95 bg-white group hover:shadow-xl ${item.isSold ? 'opacity-40 grayscale' : ''}`}>
+                                                <div className="w-full aspect-square bg-slate-50 rounded-3xl mb-4 flex items-center justify-center text-slate-300 shadow-inner overflow-hidden">
+                                                    <Icon name={item.category==='luxury'||item.category==='fashion'?'shirt':'smartphone'} size={48} />
+                                                </div>
+                                                <p className="text-[14px] font-bold text-slate-900 truncate tracking-tight">{item.name}</p>
+                                                <p className="text-[14px] font-black text-point mt-0.5">{format(item.price)}원</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </section>
+                            </div>
+                        )}
+
+                        {/* 탭 2: 자산처분 화면 */}
+                        {view === 'report' && (
+                            <div className="fade-in bg-white min-h-full">
+                                <div className="p-8 border-b border-gray-100 bg-white sticky top-0 z-10 flex justify-between items-end">
+                                    <div><h2 className="text-2xl font-black tracking-tight">자산 처분 허브</h2><p className="text-xs text-slate-400 mt-1 font-bold">인증 완료된 자산 {items.length}개</p></div>
+                                </div>
+                                <div className="divide-y divide-gray-50">
+                                    {items.map(item => (
+                                        <div key={item.id} onClick={() => setSelectedAsset(item)} className={`p-8 flex gap-6 transition active:bg-slate-50 ${item.isSold ? 'opacity-40' : ''}`}>
+                                            <div className="w-24 h-24 bg-slate-100 rounded-3xl flex items-center justify-center text-slate-300 flex-shrink-0 relative border border-gray-100 shadow-inner overflow-hidden">
+                                                <Icon name={item.category==='luxury'||item.category==='fashion'?'shirt':'smartphone'} size={40} />
+                                                {item.isSold && <div className="absolute inset-0 bg-black/40 flex items-center justify-center text-[11px] font-black text-white uppercase tracking-widest">SOLD</div>}
+                                            </div>
+                                            <div className="flex-1 flex flex-col justify-between py-1">
+                                                <div>
+                                                    <h4 className="text-[17px] font-black text-slate-900 tracking-tight leading-tight">{item.name}</h4>
+                                                    <span className={`text-[9px] font-black px-2 py-0.5 rounded-full border mt-2 inline-block ${item.category==='luxury'||item.category==='fashion' ? 'border-purple-200 text-purple-600 bg-purple-50' : 'border-blue-200 text-blue-600 bg-blue-50'}`}>{item.category.toUpperCase()}</span>
+                                                </div>
+                                                <div className="flex justify-between items-end mt-4">
+                                                    <p className="font-black text-xl text-slate-900 tracking-tighter">{format(item.price)}원</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="p-8">
+                                    <button onClick={() => setShowAdd(true)} className="w-full py-5 border-2 border-dashed border-gray-200 rounded-[2rem] flex items-center justify-center gap-3 text-slate-400 font-black hover:bg-slate-50 hover:border-point/30 hover:text-point transition shadow-sm"><Icon name="plus" size={24} /> 새 자산 수동 추가하기</button>
+                                </div>
+                            </div>
+                        )}
+                        
+                        {/* 탭 3: 신규 추가된 '스마트 옷장(자동 연동)' 화면 */}
+                        {view === 'wardrobe' && (
+                            <div className="fade-in bg-white min-h-full">
+                                {wardrobeSyncStep === 'intro' && (
+                                    <div className="p-8 flex flex-col h-[70vh] justify-center">
+                                        <div className="w-20 h-20 bg-slate-900 text-white rounded-3xl flex items-center justify-center mb-6 shadow-xl"><Icon name="sparkles" size={40} /></div>
+                                        <h2 className="text-3xl font-black text-slate-900 mb-4 leading-tight">입지 않는 옷,<br/>알아서 찾아드릴게요.</h2>
+                                        <p className="text-slate-500 mb-10 font-medium leading-relaxed">자주 이용하는 쇼핑몰을 한 번만 연결하면,<br/>옷장에 잠든 패션 자산의 현재 중고 시세를<br/>자동으로 분석해 드립니다.</p>
+                                        
+                                        <div className="space-y-3 mb-10">
+                                            <label className="flex items-center justify-between p-4 border rounded-2xl cursor-pointer hover:border-slate-900 bg-slate-50 transition">
+                                                <div className="flex items-center gap-3"><div className="w-10 h-10 bg-black text-white rounded-xl flex items-center justify-center font-bold text-xs shadow-sm">KREAM</div><span className="font-bold text-slate-800">크림 연동</span></div>
+                                                <input type="checkbox" className="w-5 h-5 accent-slate-900" defaultChecked />
+                                            </label>
+                                            <label className="flex items-center justify-between p-4 border rounded-2xl cursor-pointer hover:border-slate-900 bg-slate-50 transition">
+                                                <div className="flex items-center gap-3"><div className="w-10 h-10 bg-blue-600 text-white rounded-xl flex items-center justify-center font-bold text-xs shadow-sm">MUSINSA</div><span className="font-bold text-slate-800">무신사 연동</span></div>
+                                                <input type="checkbox" className="w-5 h-5 accent-slate-900" defaultChecked />
+                                            </label>
+                                        </div>
+                                        <button onClick={startWardrobeSync} className="w-full py-5 bg-slate-900 text-white rounded-[2rem] font-black text-lg shadow-xl active:scale-95 transition">데이터 안전하게 연동하기</button>
+                                    </div>
+                                )}
+
+                                {wardrobeSyncStep === 'loading' && (
+                                    <div className="p-8 flex flex-col h-[70vh] justify-center items-center text-center">
+                                        <Icon name="loader-2" size={48} className="text-point spin-slow mb-6" />
+                                        <h2 className="text-xl font-black text-slate-900 mb-2">패션 자산 분석 중...</h2>
+                                        <p className="text-sm text-slate-500">최근 3년간의 구매 내역과<br/>현재 리셀 시장 시세를 매칭하고 있습니다.</p>
+                                    </div>
+                                )}
+
+                                {wardrobeSyncStep === 'dashboard' && (
+                                    <div className="fade-in p-5 space-y-8">
+                                        {/* 데일리룩 코디 추천 (구매 유도 BM 영역) */}
+                                        <div className="bg-slate-100 p-6 rounded-[2.5rem] relative overflow-hidden">
+                                            <div className="flex justify-between items-center mb-4">
+                                                <h3 className="font-black text-lg text-slate-900"><span className="text-point">AI</span> 오늘의 데일리룩</h3>
+                                                <span className="text-[10px] bg-white px-2 py-1 rounded-full font-bold shadow-sm">18°C 맑음</span>
+                                            </div>
+                                            <div className="flex gap-4">
+                                                <div className="w-20 h-24 bg-white rounded-2xl flex items-center justify-center shadow-sm"><Icon name="shirt" className="text-slate-400" /></div>
+                                                <div className="w-20 h-24 bg-white rounded-2xl flex items-center justify-center shadow-sm"><Icon name="shirt" className="text-slate-400" /></div>
+                                                {/* 코디 제안 (빈자리) */}
+                                                <div className="w-20 h-24 border-2 border-dashed border-point/50 bg-orange-50 rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:bg-orange-100 transition">
+                                                    <Icon name="plus" size={16} className="text-point mb-1" />
+                                                    <span className="text-[9px] font-bold text-point text-center">어울리는<br/>신발 추천</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* 자산 관리 및 처분 유도 영역 */}
+                                        <div className="flex justify-between items-end mb-4 px-2">
+                                            <div><h3 className="font-black text-xl tracking-tight">내 옷장 자산</h3><p className="text-xs text-slate-400 font-bold mt-1">총 {wardrobeItems.length}벌 자동 등록됨</p></div>
+                                        </div>
+                                        
+                                        <div className="space-y-4">
+                                            {wardrobeItems.map(wItem => (
+                                                <div key={wItem.id} className="p-5 bg-white border border-slate-100 rounded-[2rem] shadow-sm relative overflow-hidden group">
+                                                    {/* 안 입는 옷 처분 시그널 (Nudge) */}
+                                                    {wItem.originalPrice > wItem.currentPrice ? (
+                                                        <div className="absolute top-0 right-0 bg-red-50 text-red-600 px-3 py-1 text-[10px] font-black rounded-bl-2xl border-b border-l border-red-100">가치 하락중! 처분 권장</div>
+                                                    ) : (
+                                                        <div className="absolute top-0 right-0 bg-emerald-50 text-emerald-600 px-3 py-1 text-[10px] font-black rounded-bl-2xl border-b border-l border-emerald-100">프리미엄 상승중!</div>
+                                                    )}
+                                                    
+                                                    <p className="text-[10px] font-bold text-slate-400 mb-1 mt-2">{wItem.source}</p>
+                                                    <h4 className="font-bold text-slate-900 mb-3 truncate pr-16">{wItem.name}</h4>
+                                                    
+                                                    <div className="flex justify-between items-end bg-slate-50 p-4 rounded-2xl">
+                                                        <div>
+                                                            <p className="text-[10px] text-slate-400 font-bold mb-1">현재 예상 리셀가</p>
+                                                            <p className="font-black text-lg text-slate-900">{format(wItem.currentPrice)}원</p>
+                                                        </div>
+                                                        <button onClick={() => moveToAsset(wItem)} className="text-[11px] font-black bg-slate-900 text-white px-4 py-2 rounded-xl active:scale-95 transition shadow-md hover:bg-slate-800">
+                                                            현금화 하기
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                            {wardrobeItems.length === 0 && (
+                                                <div className="text-center py-10 text-slate-400 font-bold text-sm bg-slate-50 rounded-3xl">옷장 자산이 모두 처분 허브로 이동되었습니다! 🎉</div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </main>
+
+                    {showAdd && <AddAssetModal onClose={() => setShowAdd(false)} onAdd={item => setItems([item, ...items])} />}
+                    {selectedAsset && <AssetDetailView item={selectedAsset} onBack={() => setSelectedAsset(null)} onToggleSold={toggleSold} debtTotal={totalDebt} />}
+
+                    {/* 하단 네비게이션 (스마트 옷장 탭 추가) */}
+                    <nav className="fixed bottom-0 w-full max-w-md bg-white/95 backdrop-blur-xl border-t border-gray-100 flex justify-around items-center pb-8 pt-4 z-40 px-2 shadow-[0_-10px_30px_rgba(0,0,0,0.03)]">
+                        {[ 
+                            { id: 'home', label: '홈', icon: 'home' }, 
+                            { id: 'wardrobe', label: '스마트옷장', icon: 'shirt' }, 
+                            { id: 'report', label: '자산처분', icon: 'banknote' }
+                        ].map(item => {
+                            const active = view === item.id;
+                            return (
+                                <button key={item.id} onClick={() => setView(item.id)} className={`flex flex-col items-center gap-1.5 transition-all duration-300 py-2 px-4 rounded-2xl ${active ? 'text-slate-900 scale-110' : 'text-slate-300'}`}>
+                                    <Icon name={item.icon} size={24} className={active ? "stroke-[3]" : "opacity-60"} />
+                                    <span className="text-[10px] font-black uppercase tracking-widest">{item.label}</span>
+                                    {active && <div className="absolute -top-1 w-1.5 h-1.5 bg-point rounded-full animate-bounce"></div>}
+                                </button>
+                            );
+                        })}
+                    </nav>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
 </body>
 </html>
