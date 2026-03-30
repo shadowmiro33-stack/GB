@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>홀가분(Holgabun) - 옷장 연동</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 모바일 앱 화면 비율 제어 */
+        body { background-color: #e5e7eb; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; font-family: 'Pretendard', sans-serif; }
+        .app-container { width: 100%; max-width: 390px; height: 844px; background: #ffffff; position: relative; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-radius: 20px; }
+        .screen { display: none; height: 100%; padding: 24px; flex-direction: column; }
+        .screen.active { display: flex; }
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #111827; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    
+    <div id="screen-intro" class="screen active justify-center">
+        <h1 class="text-3xl font-bold text-gray-900 mb-4">내 옷장,<br>이제 자산이 됩니다.</h1>
+        <p class="text-gray-500 mb-8">일일이 사진 찍을 필요 없이,<br>자주 쓰는 쇼핑몰을 연결해 내 옷장을 완성하세요.</p>
+        <img src="https://placehold.co/300x200/e2e8f0/64748b?text=Wardrobe+Sync" alt="의류 연동 일러스트" class="rounded-lg mb-8 mx-auto">
+        <button onclick="showScreen('screen-connect')" class="w-full bg-gray-900 text-white font-bold py-4 rounded-xl mt-auto hover:bg-gray-800 transition">쇼핑몰 연동 시작하기</button>
+    </div>
+
+    <div id="screen-connect" class="screen">
+        <button onclick="showScreen('screen-intro')" class="text-gray-400 mb-6 text-left">← 뒤로가기</button>
+        <h2 class="text-2xl font-bold text-gray-900 mb-2">어디서 주로<br>쇼핑하시나요?</h2>
+        <p class="text-sm text-gray-500 mb-6">구매 내역을 안전하게 불러옵니다.</p>
+        
+        <div class="space-y-3 flex-1">
+            <label class="flex items-center justify-between p-4 border rounded-xl cursor-pointer hover:border-gray-900">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center font-bold text-xs">KREAM</div>
+                    <span class="font-medium text-gray-800">크림 (KREAM)</span>
+                </div>
+                <input type="checkbox" class="w-5 h-5 accent-gray-900" checked>
+            </label>
+            <label class="flex items-center justify-between p-4 border rounded-xl cursor-pointer hover:border-gray-900">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-xs">MUSINSA</div>
+                    <span class="font-medium text-gray-800">무신사</span>
+                </div>
+                <input type="checkbox" class="w-5 h-5 accent-gray-900" checked>
+            </label>
+            <label class="flex items-center justify-between p-4 border rounded-xl cursor-pointer hover:border-gray-900">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-gray-200 text-gray-800 rounded-full flex items-center justify-center font-bold text-xs">BALAAN</div>
+                    <span class="font-medium text-gray-800">발란</span>
+                </div>
+                <input type="checkbox" class="w-5 h-5 accent-gray-900">
+            </label>
+        </div>
+
+        <button onclick="startSync()" class="w-full bg-gray-900 text-white font-bold py-4 rounded-xl mt-4">선택한 쇼핑몰 연동하기</button>
+    </div>
+
+    <div id="screen-loading" class="screen justify-center text-center">
+        <div class="loader mb-6"></div>
+        <h2 class="text-xl font-bold text-gray-900 mb-2">패션 자산을 불러오는 중...</h2>
+        <p class="text-sm text-gray-500">최근 3년간의 구매 내역과<br>현재 중고 시세를 매칭하고 있습니다.</p>
+    </div>
+
+    <div id="screen-dashboard" class="screen bg-gray-50">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-bold text-gray-900">내 옷장 자산</h2>
+            <div class="w-8 h-8 bg-gray-300 rounded-full"></div>
+        </div>
+        
+        <div class="bg-gray-900 text-white p-5 rounded-2xl mb-6 shadow-lg">
+            <p class="text-sm text-gray-300 mb-1">총 예상 자산 가치 (12벌)</p>
+            <h3 class="text-3xl font-bold mb-3">₩ 3,450,000</h3>
+            <div class="flex justify-between text-xs text-gray-400 bg-gray-800 p-3 rounded-lg">
+                <span>구매가 대비 수익률</span>
+                <span class="text-red-400 font-bold">+ 12.5% ↑</span>
+            </div>
+        </div>
+
+        <h3 class="font-bold text-gray-800 mb-3">최근 연동된 아이템</h3>
+        
+        <div class="space-y-4 overflow-y-auto pb-4">
+            <div class="bg-white p-4 rounded-xl border flex items-center gap-4">
+                <div class="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center text-xs">이미지</div>
+                <div class="flex-1">
+                    <p class="text-xs text-gray-500">KREAM 연동</p>
+                    <h4 class="font-bold text-sm text-gray-900 line-clamp-1">메종 마르지엘라 레플리카 스니커즈</h4>
+                    <div class="flex justify-between items-end mt-1">
+                        <span class="text-xs text-gray-400">구매가 54만</span>
+                        <span class="font-bold text-blue-600">현재 시세 48만</span>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white p-4 rounded-xl border flex items-center gap-4">
+                <div class="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center text-xs">이미지</div>
+                <div class="flex-1">
+                    <p class="text-xs text-gray-500">무신사 연동</p>
+                    <h4 class="font-bold text-sm text-gray-900 line-clamp-1">우영미 백로고 블랙 티셔츠</h4>
+                    <div class="flex justify-between items-end mt-1">
+                        <span class="text-xs text-gray-400">구매가 22만</span>
+                        <span class="font-bold text-red-500">현재 시세 25만 ↑</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <button class="w-full bg-gray-900 text-white font-bold py-4 rounded-xl mt-auto shadow-lg">안 입는 옷 홀가분하게 판매하기</button>
+    </div>
+
+</div>
+
+<script>
+    function showScreen(screenId) {
+        document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+        document.getElementById(screenId).classList.add('active');
+    }
+
+    function startSync() {
+        showScreen('screen-loading');
+        // 실제로는 API 호출이 들어가는 부분 (가짜 딜레이 2.5초)
+        setTimeout(() => {
+            showScreen('screen-dashboard');
+        }, 2500);
+    }
+</script>
+
+</body>
+</html>
